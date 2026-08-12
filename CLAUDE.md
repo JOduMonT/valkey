@@ -13,11 +13,13 @@ explicitly suppress the auto-assigned domain: `PATCH /applications/<uuid>` with
 
 ## Version pinning
 
-Pinned to `valkey/valkey:8-alpine` — major-version-and-alpine pin, same style already used
-for the shared Postgres (`postgres:18-alpine`), since Valkey's own release cadence favors
-tracking the latest patch within a major automatically rather than pinning an exact patch.
-Bump the major only via a deliberate Renovate PR + this fleet's major-upgrade runbook
-(dump/restore equivalent — Valkey supports `BGSAVE`/`--appendonly` for this).
+Pinned to a major-version-and-alpine tag — see `docker-compose.yaml`'s `image:` line for the
+exact tag currently deployed, never restated here in prose (it drifts the moment Renovate
+bumps it — this fleet has hit that exact staleness before, see the Hub's `CLAUDE.md`). Same
+style already used for the shared Postgres, since this release cadence favors tracking the
+latest patch within a major automatically rather than pinning an exact patch. Bump the major
+only via a deliberate Renovate PR + this fleet's major-upgrade runbook (dump/restore
+equivalent — Valkey supports `BGSAVE`/`--appendonly` for this).
 
 ## Security hardening
 
