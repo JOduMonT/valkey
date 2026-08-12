@@ -1,0 +1,17 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+
+jobs:
+  lint:
+    uses: JOduMonT/fleet-toolkit/.github/workflows/compose-lint.yml@v1
+    with:
+      compose-file: docker-compose.yaml
+  smoke-test:
+    uses: JOduMonT/fleet-toolkit/.github/workflows/compose-smoke-test.yml@v1
+    with:
+      compose-file: docker-compose.yaml
+      env-file: .env.example

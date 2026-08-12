@@ -1,0 +1,10 @@
+name: Check for upstream releases
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch: {}
+
+jobs:
+  check:
+    uses: JOduMonT/fleet-toolkit/.github/workflows/check-upstream-release.yml@v1
