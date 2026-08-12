@@ -4,7 +4,7 @@
 # public domain — see README for the docker_compose_domains suppression step.
 services:
   valkey:
-    image: valkey/valkey:8-alpine
+    image: valkey/valkey:9-alpine
     restart: unless-stopped
     command: ["valkey-server", "--requirepass", "${VALKEY_REQUIREPASS:?VALKEY_REQUIREPASS must be set}", "--appendonly", "yes"]
     environment:
