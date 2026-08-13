@@ -12,6 +12,13 @@ services:
     #   - "6379:6379"
     # Security hardening (OWASP Docker Security Cheat Sheet) — see docker-compose.coolify.yaml
     # for why each of these values is exactly what it is, verified against a real container.
+    # Deliberately NOT using --aclfile here, unlike the Coolify variant: this file is for
+    # disposable local dev (`docker compose down -v` is expected between sessions), and an
+    # aclfile requires a pre-existing seed file or the container refuses to start — adding
+    # that bootstrap step would work against the "cp .env.example .env && docker compose up"
+    # zero-friction goal. The Coolify variant needs it because it auto-redeploys on every push
+    # to this repo (even docs-only) and that was silently wiping ACL SETUSER grants, which
+    # matters for a long-lived shared instance in a way it doesn't for a throwaway local one.
     # user: "999:1000" (valkey:valkey, baked into the image) — the image's entrypoint drops
     # from root to this user via `setpriv`, which needs SETUID/SETGID; cap_drop: ALL removes
     # those, so the container must start as this user directly instead. /data is already

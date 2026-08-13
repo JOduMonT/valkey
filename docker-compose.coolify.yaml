@@ -6,7 +6,7 @@ services:
   valkey:
     image: valkey/valkey:8-alpine
     restart: unless-stopped
-    command: ["valkey-server", "--requirepass", "${VALKEY_REQUIREPASS:?VALKEY_REQUIREPASS must be set}", "--appendonly", "yes"]
+    command: ["valkey-server", "--requirepass", "${VALKEY_REQUIREPASS:?VALKEY_REQUIREPASS must be set}", "--appendonly", "yes", "--aclfile", "/data/users.acl"]
     environment:
       VALKEY_REQUIREPASS: ${VALKEY_REQUIREPASS:?VALKEY_REQUIREPASS must be set}
     volumes:
@@ -21,6 +21,17 @@ services:
     # - read_only + tmpfs /tmp: /data (the real data, incl. the appendonly file) is already a
     #   named volume so it stays writable regardless of read_only; valkey needs nothing else
     #   writable in normal operation.
+    # - --aclfile /data/users.acl — found live during n8n onboarding: without an aclfile,
+    #   ACL SETUSER only lives in the running process's memory and is silently wiped on every
+    #   container recreation (including a redeploy triggered by an unrelated, docs-only push
+    #   to this repo — this actually happened once). The file MUST already exist at /data
+    #   before the container starts (valkey refuses to start otherwise, it will not create
+    #   the file itself) and must define every user including `default` (the command-line
+    #   --requirepass above is kept only as a defense-in-depth fallback in case the aclfile
+    #   is ever lost — do not rely on it as the primary mechanism once an aclfile is in use).
+    #   Seed/update it via: `docker exec <container> sh -c 'cat > /data/users.acl'` with lines
+    #   of the form `user <name> on ><password> sanitize-payload ~<pattern> &<pattern> +@all
+    #   -@admin -@dangerous`, one per user, BEFORE the first deploy that adds this flag.
     # - user: "999:1000" (valkey:valkey, baked into the image) — the image's entrypoint drops
     #   from root to this user via `setpriv`, which needs SETUID/SETGID; cap_drop: ALL removes
     #   those, so the container must start as this user directly instead. /data is already

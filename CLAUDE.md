@@ -52,3 +52,25 @@ Durable data (not ephemeral) — chosen so a future consumer can use this as a r
 not just a disposable queue broker. Per-consumer isolation is via Valkey ACL users scoped to
 a `<app>:*` key pattern (see README's "Adding a new consumer"), not a single shared password
 — mirrors the per-app-database isolation this fleet already does for the shared Postgres.
+
+## `ACL SETUSER` alone does not survive a redeploy — this took down production once
+
+The Coolify variant now runs with `--aclfile /data/users.acl`, added after a real incident:
+before this flag existed, `ACL SETUSER` grants only ever lived in the running process's
+memory. A completely unrelated, docs-only push to this repo (a README edit, not a compose
+change) triggered Coolify's auto-deploy webhook — which fires on *any* push, not just
+functional ones — recreating the container from a clean process. n8n's ACL user vanished
+silently, and n8n's queue mode broke in production (`WRONGPASS`, repeating) with no warning
+until someone checked.
+
+With `--aclfile` in place, `ACL SETUSER ...` **must** be followed by `ACL SAVE` to actually
+persist — see README's "Adding a new consumer" for the full two-step command. An unsaved
+grant still works right now and still silently vanishes on the next redeploy; the failure
+mode is identical to before, just requires one more step to trigger.
+
+**The aclfile must already exist in the volume before a container that references
+`--aclfile` first starts** — Valkey refuses to start if the path doesn't exist, it will not
+create the file itself. If ever rebuilding this instance from scratch (new volume), seed the
+file first: `docker exec <container> sh -c 'cat > /data/users.acl'` with one `user ...` line
+per account (see README for the line format), *then* deploy the compose revision that adds
+`--aclfile`. Doing it in the other order restart-loops the container.
